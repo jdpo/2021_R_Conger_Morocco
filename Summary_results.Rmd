@@ -1,0 +1,252 @@
+---
+title: "conger"
+output:
+  pdf_document: 
+    latex_engine: xelatex
+  word_document: default
+  html_document: default
+---
+
+
+
+```{r, initial setup, include = FALSE , fig.keep='all', fig.align="default"}
+knitr::opts_chunk$set(echo=FALSE)
+
+load("./models_fitted.RData")
+
+library(ggplot2)
+library(nlme)
+library(tidyverse)
+library(car)
+library(stats)
+library(MuMIn)
+library(flextable)
+
+hist(conger$Hg)
+hist(conger$Pb)
+hist(conger$Cd)
+
+
+```
+
+
+## Initial data inspection
+
+```{r, fig.keep='all', fig.align="default"}
+
+hist(conger$Hg, main = NULL, xlab = "Hg (µg/kg)")
+hist(conger$Cd, main = NULL, xlab = "Cd (µg/kg)")
+hist(conger$Pb, main = NULL, xlab = "Pb (µg/kg)")
+
+ggplot(conger, aes(length)) + 
+  geom_histogram(binwidth = 5, fill = "white", color = "black") + 
+  facet_wrap(~station) +
+  theme_bw()
+
+```
+
+**Fig 1** Overview of data distribution
+
+
+
+## Plotting the model results
+
+```{r, fig.keep='all', fig.align="default"}
+
+ggplot(conger, aes(x=length, y=Hg)) +
+  geom_point(size=0.9)+
+  theme_bw()+
+  geom_line(aes(x= length, y=predict(glm.Hg, type="response")), size = 0.3)+
+  labs(x = "length (cm)", y = "Hg (µg/kg)")+
+  facet_wrap(~ station)
+
+ggplot(conger.Cd, aes(x=length, y=Cd)) +
+  geom_point(size=0.9)+
+  theme_bw()+
+  geom_line(aes(x= length, y=predict(glm.Cd, type="response")), size = 0.3)+
+  labs(x = "length (cm)", y = "Cd (µg/kg)")+
+  facet_wrap(~ station)
+ 
+ggplot(conger, aes(x=length, y=Pb)) +
+  geom_point(size=0.9)+
+  theme_bw()+
+  geom_line(aes(x= length, y=predict(glm.Pb, type="response")), size = 0.3)+
+  labs(x = "length (cm)", y = "Pb (µg/kg)")+
+  facet_wrap(~ station)
+
+
+```
+
+**Fig 2a** Raw data and GLM predictions of contaminat levels in COnger per Station as panel
+
+
+
+```{r, fig.keep='all', fig.align="default"}
+ggplot(conger, aes(x=length, y=Hg)) +
+  geom_point(aes(col = station), size=0.9)+
+  theme_bw()+
+  geom_line(aes(x= length, y=predict(glm.Hg, type="response"), col = station, linetype = region), size = 0.3)+
+  labs(x = "length (cm)", y = "Hg (µg/kg)")+
+  geom_hline(yintercept = 0.5, linetype = "dashed")
+
+ggplot(conger.Cd, aes(x=length, y=Cd)) +
+  geom_point(aes(col = station), size=0.9)+
+  theme_bw()+
+  geom_line(aes(x= length, y=predict(glm.Cd, type="response"), col = station, linetype = region), size = 0.3)+
+  labs(x = "length (cm)", y = "Cd (µg/kg)")
+
+ggplot(conger, aes(x=length, y=Pb)) +
+  geom_point(aes(col = station), size=0.9)+
+  theme_bw()+
+  geom_line(aes(x= length, y=predict(glm.Pb, type="response"), col = station, linetype = region), size = 0.3)+
+  labs(x = "length (cm)", y = "Pb (µg/kg)")
+
+```
+
+**Fig 2b** Raw data and GLM predictions of contaminat levels in COnger in single graph
+
+
+
+**Tab 1** Model statistics. Coefficients give the mean contamination at mean length of all congers on the log scale (i.e. exp of estimate provides the\ values given in Tab 2). p-values (last column, now header) indicate whether they are different from 0.\
+Coefficients with the suffix ":scale(length..." give the slope for the respective station. p-values (last column, no header) indicate whether\  
+the slopes are significant (i.e. different from 0).
+
+```{r, fig.keep='all', fig.align="default"}
+
+
+Hg <- as.data.frame(coef(summary(glm.Hg)))
+Hg <- cbind(Hg_Coefficient = rownames(Hg), Hg)
+rownames(Hg) <- NULL
+Hg <- Hg %>% rename(std_error = 3,
+                    t_value = 4,
+                    p_value = 5) %>%
+             mutate(Estimate = round(Estimate, 3),
+                    std_error = round(std_error, 3),
+                    t_value = round(t_value, 3),
+                    p_value = round(p_value, 3)) 
+            
+Cd <- as.data.frame(coef(summary(glm.Cd)))
+Cd <- cbind(Cd_Coefficient = rownames(Cd), Cd)
+rownames(Cd) <- NULL
+Cd <- Cd %>% rename(std_error = 3,
+                    t_value = 4,
+                    p_value = 5) %>%
+             mutate(Estimate = round(Estimate, 3),
+                    std_error = round(std_error, 3),
+                    t_value = round(t_value, 3),
+                    p_value = round(p_value, 3))
+
+Pb <- as.data.frame(coef(summary(glm.Pb)))
+Pb <- cbind(Pb_Coefficient = rownames(Pb), Pb)
+rownames(Pb) <- NULL
+Pb <- Pb %>% rename(std_error = 3,
+                    t_value = 4,
+                    p_value = 5) %>%
+             mutate(Estimate = round(Estimate, 3),
+                    std_error = round(std_error, 3),
+                    t_value = round(t_value, 3),
+                    p_value = round(p_value, 3))
+
+flextable(Hg) %>% autofit()
+flextable(Cd) %>% autofit()
+flextable(Pb) %>% autofit()
+
+```
+
+
+
+**Tab 2** Pairwise comparisons between stations
+
+```{r, fig.keep='all', fig.align="default"}
+
+library("lsmeans")
+
+Hg_trends <- lstrends(glm.Hg, ~ station, var = "length")
+#Hg.trends          # slope estimates and CIs
+#pairs(Hg_trends)   # comparisons
+Hg_pairs <- as.data.frame(pairs(Hg_trends))
+Hg_pairs <- Hg_pairs %>% rename(contrast.Hg = contrast) %>% 
+             mutate(estimate = round(estimate, 3),
+                    SE = round(SE, 3),
+                    z.ratio = round(z.ratio, 3),
+                    p.value = round(p.value, 3))
+  
+
+
+Cd_trends <- lstrends(glm.Cd, ~ station, var = "length")
+#Cd.trends          # slope estimates and CIs
+#pairs(Cd_trends)   # comparisons
+Cd_pairs <- as.data.frame(pairs(Cd_trends))
+Cd_pairs <- Cd_pairs %>% rename(contrast.Cd = contrast) %>% 
+             mutate(estimate = round(estimate, 3),
+                    SE = round(SE, 3),
+                    z.ratio = round(z.ratio, 3),
+                    p.value = round(p.value, 3))
+
+Pb_trends <- lstrends(glm.Pb, ~ station, var = "length")
+#Pb.trends          # slope estimates and CIs
+#pairs(Pb_trends)   # comparisons
+Pb_pairs <- as.data.frame(pairs(Pb_trends))
+Pb_pairs <- Pb_pairs %>% rename(contrast.Pb = contrast) %>% 
+             mutate(estimate = round(estimate, 3),
+                    SE = round(SE, 3),
+                    z.ratio = round(z.ratio, 3),
+                    p.value = round(p.value, 3))
+
+flextable(Hg_pairs) %>% autofit()
+flextable(Cd_pairs) %>% autofit()
+flextable(Pb_pairs) %>% autofit()
+```
+
+
+
+## Comparing station averages
+
+**Tab 3** Predictions of contamination at mean length (or mean for Pb)
+
+```{r, fig.keep='all', fig.align="default"}
+
+#make predictions for Hg and Pb
+predictions <- expand.grid(station=unique(conger$station),
+                     length=mean(conger$length))
+
+predictions$Hg_at_length <- predict(glm.Hg, type="response", newdata = predictions)
+predictions$Pb_mean <- predict(glm.Pb.nolength, type="response", newdata = predictions)
+
+#seperate predictions for Cd due to different no of stations
+predictions.Cd <- predictions[!(predictions$station=="Sidi el Abed"),]
+predictions.Cd$Cd_at_length <- predict(glm.Cd, type="response", newdata = predictions.Cd)
+predictions.Cd$Hg_at_length <- NULL
+predictions.Cd$Pb_mean <- NULL
+predictions.Cd$length <- NULL
+
+#calculate geometric means
+geom_means <- conger %>%
+                group_by(station) %>%
+                summarize(geom_mean = exp(mean(log(Pb))))
+
+#merge both data frames
+predictions <- left_join(predictions, predictions.Cd, by = "station")
+predictions <- left_join(predictions, geom_means, by = "station")
+rm(list = ls()[ls() %in% c("predictions.Cd", "geom_means")])
+
+#round to one digit
+predictions <- predictions %>% 
+             mutate(length = round(length, 1),
+                    Hg_at_length = round(Hg_at_length, 1),
+                    Cd_at_length = round(Cd_at_length, 1),
+                    Pb_mean = round(Pb_mean, 1),
+                    Pb_geom_mean = round(geom_mean, 1)) %>%
+                    relocate(Pb_mean, .after = Cd_at_length)
+
+predictions$geom_mean <- NULL
+
+#Useful code if statistical comparisons should be done at a given length
+#library(lsmeans)
+#lsmeans(glm.Hg, pairwise ~ station | length, at = list(length = 81))
+
+flextable(predictions) %>% autofit()
+
+
+```
+
