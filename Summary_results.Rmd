@@ -12,7 +12,7 @@ output:
 ```{r, initial setup, include = FALSE , fig.keep='all', fig.align="default"}
 knitr::opts_chunk$set(echo=FALSE)
 
-load("./models_fitted.RData")
+load("./models_fitted_temp.RData")
 
 library(ggplot2)
 library(nlme)
@@ -77,7 +77,7 @@ ggplot(conger, aes(x=length, y=Pb)) +
 
 ```
 
-**Fig 2a** Raw data and GLM predictions of contaminat levels in COnger per Station as panel
+**Fig 2a** Raw data and GLM predictions of contaminat levels in Conger per Station as panel
 
 
 
@@ -107,9 +107,10 @@ ggplot(conger, aes(x=length, y=Pb)) +
 
 
 
-**Tab 1** Model statistics. Coefficients give the mean contamination at mean length of all congers on the log scale (i.e. exp of estimate provides the\ values given in Tab 2). p-values (last column, now header) indicate whether they are different from 0.\
-Coefficients with the suffix ":scale(length..." give the slope for the respective station. p-values (last column, no header) indicate whether\  
-the slopes are significant (i.e. different from 0).
+**Tab 1** Model statistics, all values are provided on the log scale. 
+Estimate for "station" provides the y-Intercept (i.e. contaminant load for a given station when length is 0) per station; significance indicates different from 0. 
+Estimates of "station:length" provide the effect of length for this station (i.e. the change in contaminant load for an increase of one unit in length); significance indicates whether the effect is different from 0 at this station (i.e. the slope of contamination load over length at this station is significantly different from 0). 
+
 
 ```{r, fig.keep='all', fig.align="default"}
 
@@ -155,7 +156,10 @@ flextable(Pb) %>% autofit()
 
 
 
-**Tab 2** Pairwise comparisons between stations
+**Tab 2** Pairwise comparisons between stations; significance indicates whether the effect of length differs between the two stations. 
+Theoretically, when effect of length is stronger in one station compared to another then also the contaminant level should will be higher given that the "base" contamination load is equal between stations (i.e. all conger have the same contamination at length 0, the y-intercept). 
+However, models perform better when "base" contamination is calculated separately per station (e.g. for Hg the calculated intercept ranges from  0.014 - 0.22 and differences are significant). Considering this value is far outside the observed range of data (starting around 60cm) they have little biological meaning; yet, especially when expressed per kg, differences in the "base" contamination are theoretically possible (particularly when expressed per kg) and thus we did not force the model thorgh the same y-Intercept to achieve the best fit to the empiric data. 
+This does, however, require a more differentiated interpretation, since contamination is not solely explained by accumulation (i.e. as a function of length) at a given station, but also by differences in the "base" contamination.  
 
 ```{r, fig.keep='all', fig.align="default"}
 
@@ -168,7 +172,7 @@ Hg_pairs <- as.data.frame(pairs(Hg_trends))
 Hg_pairs <- Hg_pairs %>% rename(contrast.Hg = contrast) %>% 
              mutate(estimate = round(estimate, 3),
                     SE = round(SE, 3),
-                    z.ratio = round(z.ratio, 3),
+                    t.ratio = round(t.ratio, 3),
                     p.value = round(p.value, 3))
   
 
@@ -180,7 +184,7 @@ Cd_pairs <- as.data.frame(pairs(Cd_trends))
 Cd_pairs <- Cd_pairs %>% rename(contrast.Cd = contrast) %>% 
              mutate(estimate = round(estimate, 3),
                     SE = round(SE, 3),
-                    z.ratio = round(z.ratio, 3),
+                    t.ratio = round(t.ratio, 3),
                     p.value = round(p.value, 3))
 
 Pb_trends <- lstrends(glm.Pb, ~ station, var = "length")
@@ -190,7 +194,7 @@ Pb_pairs <- as.data.frame(pairs(Pb_trends))
 Pb_pairs <- Pb_pairs %>% rename(contrast.Pb = contrast) %>% 
              mutate(estimate = round(estimate, 3),
                     SE = round(SE, 3),
-                    z.ratio = round(z.ratio, 3),
+                    t.ratio = round(t.ratio, 3),
                     p.value = round(p.value, 3))
 
 flextable(Hg_pairs) %>% autofit()
@@ -202,7 +206,7 @@ flextable(Pb_pairs) %>% autofit()
 
 ## Comparing station averages
 
-**Tab 3** Predictions of contamination at mean length (or mean for Pb)
+**Tab 3** Predictions of contamination at mean length of all congers (and mean for Pb)
 
 ```{r, fig.keep='all', fig.align="default"}
 
@@ -211,12 +215,14 @@ predictions <- expand.grid(station=unique(conger$station),
                      length=mean(conger$length))
 
 predictions$Hg_at_length <- predict(glm.Hg, type="response", newdata = predictions)
+predictions$Pb_at_length <- predict(glm.Pb, type="response", newdata = predictions)
 predictions$Pb_mean <- predict(glm.Pb.nolength, type="response", newdata = predictions)
 
 #seperate predictions for Cd due to different no of stations
 predictions.Cd <- predictions[!(predictions$station=="Sidi el Abed"),]
 predictions.Cd$Cd_at_length <- predict(glm.Cd, type="response", newdata = predictions.Cd)
 predictions.Cd$Hg_at_length <- NULL
+predictions.Cd$Pb_at_length <- NULL
 predictions.Cd$Pb_mean <- NULL
 predictions.Cd$length <- NULL
 
@@ -235,9 +241,11 @@ predictions <- predictions %>%
              mutate(length = round(length, 1),
                     Hg_at_length = round(Hg_at_length, 1),
                     Cd_at_length = round(Cd_at_length, 1),
+                    Pb_at_length = round(Pb_at_length, 1),
                     Pb_mean = round(Pb_mean, 1),
                     Pb_geom_mean = round(geom_mean, 1)) %>%
-                    relocate(Pb_mean, .after = Cd_at_length)
+                    relocate(Pb_mean, .after = Cd_at_length) %>%
+                    relocate(Pb_at_length, .after = Cd_at_length)
 
 predictions$geom_mean <- NULL
 

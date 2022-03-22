@@ -76,10 +76,8 @@ glm.Pb <-  glm(Pb ~  station + length:station + 0,
                data = conger)
 
 glm.Pb.nolength <-  glm(Pb ~  station + 0,
-               family=Gamma(link = "log"),
-               data = conger)
-
-
+                        family=Gamma(link = "log"),
+                        data = conger)
 
 
 
