@@ -1,8 +1,8 @@
 ---
 title: "conger"
 output:
-  html_document: default
   word_document: default
+  html_document: default
   pdf_document: 
     latex_engine: xelatex
 ---
@@ -10,7 +10,7 @@ output:
 
 
 ```{r, initial setup, include = FALSE , fig.keep='all', fig.align="default"}
-knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(warning = FALSE, echo=FALSE, message = FALSE)
 
 
 library(ggplot2)
@@ -28,8 +28,14 @@ library(rnaturalearthdata)
 library(ggspatial)
 require(ggrepel)
 
-load("./models_fitted_temp.RData")
+load("./models_fitted_final.RData")
+conger <- conger %>% 
+  mutate(region = str_replace(region, "Mittelmeer", "Mediterranean"),
+         region = str_replace(region, "Atlantik", "Atlantic"))
 
+conger.Cd <- conger.Cd %>% 
+  mutate(region = str_replace(region, "Mittelmeer", "Mediterranean"),
+         region = str_replace(region, "Atlantik", "Atlantic"))
 
 
 hist(conger$Hg)
@@ -42,16 +48,18 @@ hist(conger$Cd)
 
 ## Initial data inspection
 
-```{r, fig.keep='all', fig.align="default"}
+```{r, fig.keep='all', fig.align="default", dpi = 300}
 
-hist(conger$Hg, main = NULL, xlab = "Hg (µg/kg)")
-hist(conger$Cd, main = NULL, xlab = "Cd (µg/kg)")
-hist(conger$Pb, main = NULL, xlab = "Pb (µg/kg)")
+hist(conger$Hg, main = NULL, xlab = "Hg [µg/kg]")
+hist(conger$Cd, main = NULL, xlab = "Cd [µg/kg]")
+hist(conger$Pb, main = NULL, xlab = "Pb [µg/kg]")
 
 ggplot(conger, aes(length)) + 
-  geom_histogram(binwidth = 5, fill = "white", color = "black") + 
+  geom_histogram(binwidth = 5, fill = "white", color = "black") +
+  labs(x = "length [cm]")+
   facet_wrap(~station) +
   theme_bw()
+
 
 ```
 
@@ -61,27 +69,27 @@ ggplot(conger, aes(length)) +
 
 ## Plotting the model results
 
-```{r, fig.keep='all', fig.align="default"}
+```{r, fig.keep='all', fig.align="default", dpi = 300}
 
 ggplot(conger, aes(x=length, y=Hg)) +
   geom_point(size=0.9)+
   theme_bw()+
   geom_line(aes(x= length, y=predict(glm.Hg, type="response")), size = 0.3)+
-  labs(x = "length (cm)", y = "Hg (µg/kg)")+
+  labs(x = "length [cm]", y = "Hg [µg/kg]")+
   facet_wrap(~ station)
 
 ggplot(conger.Cd, aes(x=length, y=Cd)) +
   geom_point(size=0.9)+
   theme_bw()+
   geom_line(aes(x= length, y=predict(glm.Cd, type="response")), size = 0.3)+
-  labs(x = "length (cm)", y = "Cd (µg/kg)")+
+  labs(x = "length [cm]", y = "Cd [µg/kg]")+
   facet_wrap(~ station)
  
 ggplot(conger, aes(x=length, y=Pb)) +
   geom_point(size=0.9)+
   theme_bw()+
   geom_line(aes(x= length, y=predict(glm.Pb, type="response")), size = 0.3)+
-  labs(x = "length (cm)", y = "Pb (µg/kg)")+
+  labs(x = "length [cm]", y = "Pb [µg/kg]")+
   facet_wrap(~ station)
 
 
@@ -91,25 +99,98 @@ ggplot(conger, aes(x=length, y=Pb)) +
 
 
 
-```{r, fig.keep='all', fig.align="default"}
+```{r, fig.keep='all', fig.align="default", dpi = 300}
+
+fix_color <- (c("Al Hoceima" = "rosybrown", "Casablanca" = "tan4", "Laayoune Port" = "yellow3", "Martil" = "yellowgreen", "Nador" = "palegreen2", "Ras al Ma" = "paleturquoise3", "Safi" = "dodgerblue", "Sidi el Abed" = "mediumorchid1", "Skhirat" = "mediumvioletred"))
+
 ggplot(conger, aes(x=length, y=Hg)) +
-  geom_point(aes(col = station), size=0.9)+
+  geom_point(aes(col = station), size=2, alpha = 0.6)+
   theme_bw()+
-  geom_line(aes(x= length, y=predict(glm.Hg, type="response"), col = station, linetype = region), size = 0.3)+
-  labs(x = "length (cm)", y = "Hg (µg/kg)")+
-  geom_hline(yintercept = 0.5, linetype = "dashed")
+  #geom_line(aes(x= length, y=predict(glm.Hg, type="response"), col = station, linetype = region), size = 0.3)+
+  geom_line(aes(x= length, y=predict(glm.Hg, type="response"), col = station), size = 0.3)+
+  scale_color_manual(values = fix_color)+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        legend.text=element_text(size=12),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  labs(x = "length [cm]", y = "Hg [µg/kg WM]")
+  #geom_hline(yintercept = 500, linetype = "dashed")
 
 ggplot(conger.Cd, aes(x=length, y=Cd)) +
-  geom_point(aes(col = station), size=0.9)+
+  geom_point(aes(col = station), size=2, alpha = 0.6)+
   theme_bw()+
-  geom_line(aes(x= length, y=predict(glm.Cd, type="response"), col = station, linetype = region), size = 0.3)+
-  labs(x = "length (cm)", y = "Cd (µg/kg)")
+  #geom_line(aes(x= length, y=predict(glm.Cd, type="response"), col = station, linetype = region), size = 0.3)+
+  geom_line(aes(x= length, y=predict(glm.Cd, type="response"), col = station), size = 0.3)+
+  scale_color_manual(values = fix_color)+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        legend.text=element_text(size=12),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  labs(x = "length [cm]", y = "Cd [µg/kg WM]")
 
 ggplot(conger, aes(x=length, y=Pb)) +
-  geom_point(aes(col = station), size=0.9)+
+  geom_point(aes(col = station), size=2, alpha = 0.6)+
   theme_bw()+
-  geom_line(aes(x= length, y=predict(glm.Pb, type="response"), col = station, linetype = region), size = 0.3)+
-  labs(x = "length (cm)", y = "Pb (µg/kg)")
+  #geom_line(aes(x= length, y=predict(glm.Pb, type="response"), col = station, linetype = region), size = 0.3)+
+  geom_line(aes(x= length, y=predict(glm.Pb, type="response"), col = station), size = 0.3)+
+  scale_color_manual(values = fix_color)+
+ theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        legend.text=element_text(size=12),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())+
+  labs(x = "length [cm]", y = "Pb [µg/kg WM]")
+
+ggplot(conger, aes(x=length, y=Hg)) +
+  geom_point(aes(col = station), size=2, alpha = 0.6)+
+  theme_bw()+
+  #geom_line(aes(x= length, y=predict(glm.Hg, type="response"), col = station, linetype = region), size = 0.3)+
+  geom_line(aes(x= length, y=predict(glm.Hg, type="response"), col = station), size = 0.3)+
+  scale_color_manual(values = fix_color)+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        legend.text=element_text(size=12),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none")+
+  labs(x = "length [cm]", y = "Hg [µg/kg WM]")
+  #geom_hline(yintercept = 500, linetype = "dashed")
+
+ggplot(conger.Cd, aes(x=length, y=Cd)) +
+  geom_point(aes(col = station), size=2, alpha = 0.6)+
+  theme_bw()+
+  #geom_line(aes(x= length, y=predict(glm.Cd, type="response"), col = station, linetype = region), size = 0.3)+
+  geom_line(aes(x= length, y=predict(glm.Cd, type="response"), col = station), size = 0.3)+
+  scale_color_manual(values = fix_color)+
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        legend.text=element_text(size=12),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none")+
+  labs(x = "length [cm]", y = "Cd [µg/kg WM]")
+
+ggplot(conger, aes(x=length, y=Pb)) +
+  geom_point(aes(col = station), size=2, alpha = 0.6)+
+  theme_bw()+
+  #geom_line(aes(x= length, y=predict(glm.Pb, type="response"), col = station, linetype = region), size = 0.3)+
+  geom_line(aes(x= length, y=predict(glm.Pb, type="response"), col = station), size = 0.3)+
+  scale_color_manual(values = fix_color)+
+ theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        legend.text=element_text(size=12),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+       legend.position = "none")+
+  labs(x = "length [cm]", y = "Pb [µg/kg WM]")
 
 ```
 
@@ -123,7 +204,6 @@ Estimates of "station:length" provide the effect of length for this station (i.e
 
 
 ```{r, fig.keep='all', fig.align="default"}
-
 
 Hg <- as.data.frame(coef(summary(glm.Hg)))
 Hg <- cbind(Hg_Coefficient = rownames(Hg), Hg)
@@ -174,7 +254,6 @@ This does, however, require a more differentiated interpretation, since contamin
 
 ```{r, fig.keep='all', fig.align="default"}
 
-
 Hg_trends <- emmeans(glm.Hg, specs = "station", var = "length")
 #Hg.trends          # slope estimates and CIs
 #pairs(Hg_trends)   # comparisons
@@ -217,7 +296,7 @@ flextable(Pb_pairs) %>% autofit()
 
 ## Comparing station averages
 
-**Tab 3** Predictions of contamination at mean length of all congers (and mean for Pb)
+**Tab 3** Predictions of contamination at mean length of all congers (88.1cm)
 
 ```{r, fig.keep='all', fig.align="default"}
 
@@ -268,14 +347,17 @@ predictions <- predictions %>%
 #library(lsmeans)
 #lsmeans(glm.Hg, pairwise ~ station | length, at = list(length = 81))
 
-flextable(predictions %>% select(-Pb_at_length, -Pb_geom_mean, -lat, -long)) %>%
-  set_header_labels(X1OHPyr_mean = "1OHPyr_mean") %>% 
+flextable(predictions %>% select(-Pb_at_length, -Pb_geom_mean, -lat, -long, -length, -Pb_mean, - X1OHPyr_mean)) %>%
+  set_header_labels(length = "length [cm]",
+                    Hg_at_length = "Hg [µg/kg WM]",
+                    Cd_at_length = "Cd [µg/kg WM]",
+                    Pb_mean = "Pb mean") %>% 
   autofit()
 
 
 ```
 
-```{r, fig.keep='all', fig.align="default"}
+```{r, fig.keep='all', fig.align="default", dpi = 300, message = FALSE, echo = FALSE, warning = FALSE}
 
 theme_set(theme_bw())
 
@@ -297,30 +379,6 @@ ggplot(data = predictions) +
   coord_sf(xlim = c(30, -30.00), ylim = c(22.00, 65), expand = T) +
   geom_rect(mapping = aes(xmin = -15.5, xmax = -1, ymin = 25, ymax = 36.5), color = "black", alpha = 0)
 
-ggplot(data = predictions) +
-  geom_sf(color = "black", fill = "oldlace", data = land) +
-  geom_sf(color = "gray55", fill = "oldlace", data = morocco) +
-  geom_sf(color = "black", fill = "aliceblue", data = ocean) +
-  # coord_sf(crs = "+init=epsg:3035")
-  # coord_sf(crs = st_crs(3035)) + 
-  annotation_scale(location = "tl", width_hint = 0.3, pad_y = unit(0.85, "in"), pad_x = unit(0.2, "in")) +
-    annotation_north_arrow(location = "tl", which_north = "true", 
-        pad_x = unit(0.48, "in"), pad_y = unit(0.15, "in"),
-        style = north_arrow_fancy_orienteering) +
-  geom_point (data = predictions, aes(x = long, y = lat, color = Hg_at_length), 
-        shape = 16, size = 4.5) +
-  scale_color_viridis_c()+
-  geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
-                  nudge_x = ifelse(predictions$station == "Martil", 1, 
-                            ifelse(predictions$station == "Ras al Ma", 0.7, 
-                            ifelse(predictions$station == "Al Hoceima", -0.5, 
-                            ifelse(predictions$station == "Sidi el Abed", 1.2, 1.2)))), 
-                  nudge_y = ifelse(predictions$station == "Nador", 0.7, 
-                            ifelse(predictions$station == "Martil", 0.6, 
-                            ifelse(predictions$station == "Al Hoceima", -0.7, 
-                            ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
-  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T) 
-
 
 ggplot(data = predictions) +
   geom_sf(color = "black", fill = "oldlace", data = land) +
@@ -332,9 +390,8 @@ ggplot(data = predictions) +
     annotation_north_arrow(location = "tl", which_north = "true", 
         pad_x = unit(0.48, "in"), pad_y = unit(0.15, "in"),
         style = north_arrow_fancy_orienteering) +
-  geom_point (data = predictions, aes(x = long, y = lat, color = Cd_at_length), 
-        shape = 16, size = 4.5) +
-  scale_color_viridis_c()+
+  geom_point (data = predictions, aes(x = long, y = lat), 
+        shape = 15, size = 3.5, color = "black") +
   geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
                   nudge_x = ifelse(predictions$station == "Martil", 1, 
                             ifelse(predictions$station == "Ras al Ma", 0.7, 
@@ -344,7 +401,10 @@ ggplot(data = predictions) +
                             ifelse(predictions$station == "Martil", 0.6, 
                             ifelse(predictions$station == "Al Hoceima", -0.7, 
                             ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
-  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T)
+  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T) +
+  theme(legend.key.size = unit(1.8, "cm"),
+        legend.key.width = unit(0.3, "cm"),
+        title = element_blank())
 
 
 ggplot(data = predictions) +
@@ -357,19 +417,77 @@ ggplot(data = predictions) +
     annotation_north_arrow(location = "tl", which_north = "true", 
         pad_x = unit(0.48, "in"), pad_y = unit(0.15, "in"),
         style = north_arrow_fancy_orienteering) +
-  geom_point (data = predictions, aes(x = long, y = lat, color = Pb_mean), 
-        shape = 16, size = 4.5) +
-  scale_color_viridis_c()+
-  geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
-                  nudge_x = ifelse(predictions$station == "Martil", 1, 
-                            ifelse(predictions$station == "Ras al Ma", 0.7, 
-                            ifelse(predictions$station == "Al Hoceima", -0.5, 
-                            ifelse(predictions$station == "Sidi el Abed", 1.2, 1.2)))), 
-                  nudge_y = ifelse(predictions$station == "Nador", 0.7, 
-                            ifelse(predictions$station == "Martil", 0.6, 
-                            ifelse(predictions$station == "Al Hoceima", -0.7, 
-                            ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
-  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T)
+  geom_point (data = predictions, aes(x = long, y = lat, fill = Hg_at_length), 
+        shape = 21, size = 4.5, color = "black") +
+  scale_fill_gradient(low ="white" , high = "navy" )+
+  # geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
+  #                 nudge_x = ifelse(predictions$station == "Martil", 1, 
+  #                           ifelse(predictions$station == "Ras al Ma", 0.7, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.5, 
+  #                           ifelse(predictions$station == "Sidi el Abed", 1.2, 1.2)))), 
+  #                 nudge_y = ifelse(predictions$station == "Nador", 0.7, 
+  #                           ifelse(predictions$station == "Martil", 0.6, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.7, 
+  #                           ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
+  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T) +
+  theme(legend.key.size = unit(1.8, "cm"),
+        legend.key.width = unit(0.3, "cm"),
+        title = element_blank())
+
+ggplot(data = predictions) +
+  geom_sf(color = "black", fill = "oldlace", data = land) +
+  geom_sf(color = "gray55", fill = "oldlace", data = morocco) +
+  geom_sf(color = "black", fill = "aliceblue", data = ocean) +
+  # coord_sf(crs = "+init=epsg:3035")
+  # coord_sf(crs = st_crs(3035)) + 
+  annotation_scale(location = "tl", width_hint = 0.3, pad_y = unit(0.85, "in"), pad_x = unit(0.2, "in")) +
+    annotation_north_arrow(location = "tl", which_north = "true", 
+        pad_x = unit(0.48, "in"), pad_y = unit(0.15, "in"),
+        style = north_arrow_fancy_orienteering) +
+  geom_point (data = predictions %>% filter(!is.na(Cd_at_length)), aes(x = long, y = lat, fill = Cd_at_length), 
+        shape = 21, size = 4.5, color = "black") +
+  scale_fill_gradient(low ="aliceblue" , high = "darkred" )+
+  # geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
+  #                 nudge_x = ifelse(predictions$station == "Martil", 1, 
+  #                           ifelse(predictions$station == "Ras al Ma", 0.7, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.5, 
+  #                           ifelse(predictions$station == "Sidi el Abed", 1.2, 1.2)))), 
+  #                 nudge_y = ifelse(predictions$station == "Nador", 0.7, 
+  #                           ifelse(predictions$station == "Martil", 0.6, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.7, 
+  #                           ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
+  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T)+
+  theme(legend.key.size = unit(1.8, "cm"),
+        legend.key.width = unit(0.3, "cm"),
+        title = element_blank())
+
+
+ggplot(data = predictions) +
+  geom_sf(color = "black", fill = "oldlace", data = land) +
+  geom_sf(color = "gray55", fill = "oldlace", data = morocco) +
+  geom_sf(color = "black", fill = "aliceblue", data = ocean) +
+  # coord_sf(crs = "+init=epsg:3035")
+  # coord_sf(crs = st_crs(3035)) + 
+  annotation_scale(location = "tl", width_hint = 0.3, pad_y = unit(0.85, "in"), pad_x = unit(0.2, "in")) +
+    annotation_north_arrow(location = "tl", which_north = "true", 
+        pad_x = unit(0.48, "in"), pad_y = unit(0.15, "in"),
+        style = north_arrow_fancy_orienteering) +
+  geom_point (data = predictions, aes(x = long, y = lat, fill = Pb_mean), 
+        shape = 21, size = 4.5, color = "black") +
+  scale_fill_gradient(low ="white" , high = "yellow4" )+
+  # geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
+  #                 nudge_x = ifelse(predictions$station == "Martil", 1, 
+  #                           ifelse(predictions$station == "Ras al Ma", 0.7, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.5, 
+  #                           ifelse(predictions$station == "Sidi el Abed", 1.2, 1.2)))), 
+  #                 nudge_y = ifelse(predictions$station == "Nador", 0.7, 
+  #                           ifelse(predictions$station == "Martil", 0.6, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.7, 
+  #                           ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
+  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T)+
+  theme(legend.key.size = unit(1.8, "cm"),
+        legend.key.width = unit(0.3, "cm"),
+        title = element_blank())
 
   
 ggplot(data = predictions) +
@@ -382,22 +500,25 @@ ggplot(data = predictions) +
     annotation_north_arrow(location = "tl", which_north = "true", 
         pad_x = unit(0.48, "in"), pad_y = unit(0.15, "in"),
         style = north_arrow_fancy_orienteering) +
-  geom_point (data = predictions, aes(x = long, y = lat, color = X1OHPyr_mean), 
-        shape = 16, size = 4.5) +
-  scale_color_viridis_c()+
-  geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
-                  nudge_x = ifelse(predictions$station == "Martil", 1, 
-                            ifelse(predictions$station == "Ras al Ma", 0.7, 
-                            ifelse(predictions$station == "Al Hoceima", -0.5, 
-                            ifelse(predictions$station == "Sidi el Abed", 1.2, 1.2)))), 
-                  nudge_y = ifelse(predictions$station == "Nador", 0.7, 
-                            ifelse(predictions$station == "Martil", 0.6, 
-                            ifelse(predictions$station == "Al Hoceima", -0.7, 
-                            ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
-  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T)
+  geom_point (data = predictions %>% filter(!is.na(X1OHPyr_mean)), aes(x = long, y = lat, fill = X1OHPyr_mean), 
+        shape = 21, size = 4.5, color = "black") +
+  scale_fill_gradient(low ="aliceblue" , high = "seagreen" )+
+  # geom_text_repel(aes(label = station, x = long, y = lat), size = 3, max.overlaps = 100, 
+  #                 nudge_x = ifelse(predictions$station == "Martil", 1, 
+  #                           ifelse(predictions$station == "Ras al Ma", 0.7, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.5, 
+  #                           ifelse(predictions$station == "Sidi el Abed", 1.2, 1.2)))), 
+  #                 nudge_y = ifelse(predictions$station == "Nador", 0.7, 
+  #                           ifelse(predictions$station == "Martil", 0.6, 
+  #                           ifelse(predictions$station == "Al Hoceima", -0.7, 
+  #                           ifelse(predictions$station == "Ras al Ma", -0.7, -0.8)))), max.time = 1)+
+  coord_sf(xlim = c(-1.00, -15.50), ylim = c(25.00, 36.50), expand = T)+
+  theme(legend.key.size = unit(1.8, "cm"),
+        legend.key.width = unit(0.3, "cm"),
+        title = element_blank())
   
 
 ```
-
+Mean concentration of contaminants at 88.1cm, as predicted by GLM in µg/kg wet mass (WM). Hg (blue), Cd (red), Pb (brown), 1OHPyr (green).   
 
 

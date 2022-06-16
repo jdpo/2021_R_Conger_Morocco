@@ -4,14 +4,11 @@ library(car)
 library(stats)
 library(MuMIn)
 library(multcomp)
+library(tidyverse)
 
-
-setwd("C:/Users/pohlmann/Desktop/Home_Office/GIT/shared/Conger_Ulrike")       #hier innerhalb der "" das Verzeichnis eintragen in dem die Tabelle liegt (nicht n?tig, spart aber Zeit) - statt "\" verwendet R "/"
-
-path <- file.choose()
-conger <- read.csv(path, header = T, sep  = ";")
-
-
+conger <- read.csv("R.csv", header = T, sep  = ";")
+conger <- conger %>% 
+  mutate(Hg = Hg * 1000)
 
 #Anpassung von "mixed-models", gef?hlt der standard f?r den vorliegenden Datensatz. Im wesentlichen wird Hg durch L?nge vorhergesagt. Unterschiede zwischen Stationen werden ber?cksichtigt aber 
 #im Ergebnis wird nur ersichtlich wieviel Varianz auf Station zur?ckzuf?hren ist. Eine mE gute Variante wenn man den Effekt von "length" (bzw. auch "region")
@@ -88,7 +85,7 @@ glm.Pb.nolength <-  glm(Pb ~  station + 0,
 conger.Cd <- conger[!is.na(conger$Cd),]
 
 
-glm.Cd <-  glm(Cd ~  length * station + region,
+glm.Cd <-  glm(Cd ~  length * station + length * region,
                family=Gamma(link = "log"),
                data = conger.Cd)
 
