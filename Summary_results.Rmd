@@ -527,5 +527,11 @@ summary_n <- conger %>%
   group_by(station) %>% 
   summarize (n_all = length(Hg),
              n_Cd = length(Cd[!is.na(Cd)]))
+
+#CAREFUL! Shitty code, only works for this example
+summary_n <- rbind(summary_n, (colSums(summary_n[c("n_Cd", "n_all")],))) %>% 
+  mutate(station = str_replace(station, "108", "Total"))
+
+flextable(summary_n)
 ```
 
