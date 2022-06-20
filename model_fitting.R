@@ -75,7 +75,6 @@ glm.Pb.nolength <-  glm(Pb ~  station + 0,
                         data = conger)
 
 
-
 ################################
 # 3. Selection of the Cd model #
 ################################

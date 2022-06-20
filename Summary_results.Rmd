@@ -319,7 +319,8 @@ predictions.Cd$length <- NULL
 #calculate geometric means
 geom_means <- conger %>%
                 group_by(station) %>%
-                summarize(geom_mean = exp(mean(log(Pb))))
+                summarize(geom_mean = exp(mean(log(Pb))),
+                          mean = mean(Pb))
 
 #merge both data frames
 predictions <- left_join(predictions, predictions.Cd, by = "station")
