@@ -522,4 +522,10 @@ ggplot(data = predictions) +
 ```
 Mean concentration of contaminants at 88.1cm, as predicted by GLM in µg/kg wet mass (WM). Hg (blue), Cd (red), Pb (brown), 1OHPyr (green).   
 
+```{r}
+summary_n <- conger %>% 
+  group_by(station) %>% 
+  summarize (n_all = length(Hg),
+             n_Cd = length(Cd[!is.na(Cd)]))
+```
 
