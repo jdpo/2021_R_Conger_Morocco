@@ -28,7 +28,7 @@ library(rnaturalearthdata)
 library(ggspatial)
 require(ggrepel)
 
-load("./models_fitted_final.RData")
+load("./models_fitted.RData")
 conger <- conger %>% 
   mutate(region = str_replace(region, "Mittelmeer", "Mediterranean"),
          region = str_replace(region, "Atlantik", "Atlantic"))
