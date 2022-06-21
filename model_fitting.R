@@ -7,6 +7,7 @@ library(stats)
 library(MuMIn)
 library(multcomp)
 library(tidyverse)
+library(lmtest)
 
 conger <- read.csv("congeR.csv", header = T, sep  = ";")
 conger <- conger %>% 
@@ -26,7 +27,7 @@ glm.Hg <-  glm(Hg ~ length * station + 0,
             family=Gamma(link = "log"),
             data = conger)
 
-plot(glm.Hg)         
+#plot(glm.Hg)         
 summary(glm.Hg)
 Anova(glm.Hg)
 
@@ -45,7 +46,6 @@ glm.Hg.reduced3 <-  glm(Hg ~ length + 0,
 lrtest(glm.Hg, glm.Hg.reduced1, glm.Hg.reduced2, glm.Hg.reduced3)
 AIC(glm.Hg, glm.Hg.reduced1, glm.Hg.reduced2, glm.Hg.reduced3)
 
-
 #fitting final model for visualisation and predictions used in Summary_results.Rmd
 
 glm.Hg <-  glm(Hg ~ station + station:length + 0,
@@ -60,9 +60,8 @@ glm.Pb <-  glm(Pb ~  length * station + 0,
              family=Gamma(link = "log"),
              data = conger)
 
-plot(glm.Pb)         
+#plot(glm.Pb)         
 summary(glm.Pb)
-summary(glm.Pb.nolength)
 Anova(glm.Pb)
 
 glm.Pb.reduced1 <-  glm(Pb ~  station + length + 0,
@@ -93,6 +92,9 @@ glm.Pb.nolength <-  glm(Pb ~  station + 0,
                         family=Gamma(link = "log"),
                         data = conger)
 
+#plot(glm.Pb.nolength)
+summary(glm.Pb.nolength)
+
 
 ################################
 # 3. Selection of the Cd model #
@@ -105,7 +107,7 @@ glm.Cd <-  glm(Cd ~  length * station + 0,
                family=Gamma(link = "log"),
                data = conger.Cd)
 
-plot(glm.Cd)         
+#plot(glm.Cd)         
 summary(glm.Cd)
 Anova(glm.Cd)
 
