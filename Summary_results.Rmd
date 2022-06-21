@@ -28,7 +28,7 @@ library(rnaturalearthdata)
 library(ggspatial)
 require(ggrepel)
 
-load("./models_fitted.RData")
+load("./model_fits.RData")
 conger <- conger %>% 
   mutate(region = str_replace(region, "Mittelmeer", "Mediterranean"),
          region = str_replace(region, "Atlantik", "Atlantic"))
@@ -348,11 +348,9 @@ predictions <- predictions %>%
 #library(lsmeans)
 #lsmeans(glm.Hg, pairwise ~ station | length, at = list(length = 81))
 
-flextable(predictions %>% select(-Pb_at_length, -Pb_geom_mean, -lat, -long, -length, -Pb_mean, - X1OHPyr_mean)) %>%
-  set_header_labels(length = "length [cm]",
-                    Hg_at_length = "Hg [µg/kg WM]",
-                    Cd_at_length = "Cd [µg/kg WM]",
-                    Pb_mean = "Pb mean") %>% 
+flextable(predictions %>% select(-Pb_at_length, -Pb_geom_mean, -lat, -long, -length, -Pb_mean, - X1OHPyr_mean, -mean)) %>%
+  set_header_labels(Hg_at_length = "Hg [µg/kg WM]",
+                    Cd_at_length = "Cd [µg/kg WM]") %>% 
   autofit()
 
 
@@ -523,7 +521,7 @@ ggplot(data = predictions) +
 Mean concentration of contaminants at 88.1cm, as predicted by GLM in µg/kg wet mass (WM). Hg (blue), Cd (red), Pb (brown), 1OHPyr (green).   
 \
 \
-Tab x. Sample numbers per heavy metal
+**Tab 4** Sample numbers per heavy metal
 
 
 ```{r}
