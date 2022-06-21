@@ -1,9 +1,9 @@
 ---
 title: "conger"
 output:
+  word_document: default
   pdf_document: 
     latex_engine: xelatex
-  word_document: default
   html_document: default
 ---
 
@@ -195,9 +195,9 @@ ggplot(conger, aes(x=length, y=Pb)) +
 ```
 
 **Fig 2b** Raw data and GLM predictions of contaminat levels in COnger in single graph
-
-
-
+\
+\
+\
 **Tab 1** Model statistics, all values are provided on the log scale. 
 Estimate for "station" provides the y-Intercept (i.e. contaminant load for a given station when length is 0) per station; significance indicates different from 0. 
 Estimates of "station:length" provide the effect of length for this station (i.e. the change in contaminant load for an increase of one unit in length); significance indicates whether the effect is different from 0 at this station (i.e. the slope of contamination load over length at this station is significantly different from 0). 
@@ -246,7 +246,7 @@ flextable(Pb) %>% autofit()
 ```
 
 
-
+\
 **Tab 2** Pairwise comparisons between stations; significance indicates whether the effect of length differs between the two stations. 
 Theoretically, when effect of length is stronger in one station compared to another then also the contaminant level should will be higher given that the "base" contamination load is equal between stations (i.e. all conger have the same contamination at length 0, the y-intercept). 
 However, models perform better when "base" contamination is calculated separately per station (e.g. for Hg the calculated intercept ranges from  0.014 - 0.22 and differences are significant). Considering this value is far outside the observed range of data (starting around 60cm) they have little biological meaning; yet, especially when expressed per kg, differences in the "base" contamination are theoretically possible (particularly when expressed per kg) and thus we did not force the model thorgh the same y-Intercept to achieve the best fit to the empiric data. 
@@ -295,7 +295,8 @@ flextable(Pb_pairs) %>% autofit()
 
 
 ## Comparing station averages
-
+\
+\
 **Tab 3** Predictions of contamination at mean length of all congers (88.1cm)
 
 ```{r, fig.keep='all', fig.align="default"}
@@ -518,7 +519,9 @@ ggplot(data = predictions) +
   
 
 ```
-Mean concentration of contaminants at 88.1cm, as predicted by GLM in µg/kg wet mass (WM). Hg (blue), Cd (red), Pb (brown), 1OHPyr (green).   
+\
+**Fig 3** Mean concentration of contaminants at 88.1cm, as predicted by GLM in µg/kg wet mass (WM). Hg (blue), Cd (red), Pb (brown), 1OHPyr (green).   
+\
 \
 \
 **Tab 4** Sample numbers per heavy metal
